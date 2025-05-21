@@ -1,27 +1,37 @@
 import { Injectable } from "@nestjs/common";
-import { CsvParserService } from "../csv-parser/csv-parser.service";
-import { validatePrescription } from "./validation";
+import { processBatch } from "./strategies/batch.processor";
+import { processStream } from "./strategies/stream.processor";
+import { processParallel } from "./strategies/parallel.processor";
+import { performance } from "perf_hooks";
 
 @Injectable()
 export class UploadService {
-  constructor(private readonly csvParser: CsvParserService) {}
+  async processFile(filePath: string, mode: "batch" | "stream" | "parallel") {
+    const start = performance.now();
 
-  async processFile(filePath: string) {
-    const rows = await this.csvParser.parse(filePath);
-    const valid: any[] = [];
-    const invalid: any[] = [];
-
-    for (const row of rows) {
-      const result = validatePrescription(row);
-      if (result.success) valid.push(result.data);
-      else invalid.push({ row, errors: result.error });
+    let result;
+    switch (mode) {
+      case "stream":
+        result = await processStream(filePath);
+        break;
+      case "parallel":
+        result = await processParallel(filePath);
+        break;
+      case "batch":
+      default:
+        result = await processBatch(filePath);
+        break;
     }
 
+    const end = performance.now();
+    const durationMs = end - start;
+
     return {
-      total: rows.length,
-      valid: valid.length,
-      invalid: invalid.length,
-      errors: invalid,
+      duration: {
+        milliseconds: Math.round(durationMs),
+        seconds: (durationMs / 1000).toFixed(2),
+      },
+      ...result,
     };
   }
 }

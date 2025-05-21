@@ -3,6 +3,7 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
+  Query,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
@@ -14,6 +15,7 @@ import {
   ApiSecurity,
   ApiOperation,
   ApiResponse,
+  ApiQuery,
 } from "@nestjs/swagger";
 
 @ApiSecurity("x-api-key")
@@ -24,6 +26,12 @@ export class UploadController {
   @Post()
   @ApiOperation({ summary: "Upload de arquivo CSV para processamento" })
   @ApiConsumes("multipart/form-data")
+  @ApiQuery({
+    name: "mode",
+    required: false,
+    enum: ["batch", "stream", "parallel"],
+    description: "Modo de processamento (default: batch)",
+  })
   @ApiBody({
     description: "Arquivo CSV",
     required: true,
@@ -50,7 +58,10 @@ export class UploadController {
       }),
     }),
   )
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    return this.uploadService.processFile(file.path);
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Query("mode") mode: "batch" | "stream" | "parallel" = "batch",
+  ) {
+    return this.uploadService.processFile(file.path, mode);
   }
 }

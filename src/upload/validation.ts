@@ -40,6 +40,8 @@ export const prescriptionSchema = z
     }
   });
 
+export type Prescription = z.infer<typeof prescriptionSchema>;
+
 export function validatePrescription(data: any) {
   return prescriptionSchema.safeParse(data);
 }
