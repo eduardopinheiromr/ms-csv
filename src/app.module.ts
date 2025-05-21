@@ -1,7 +1,6 @@
 import { Module } from "@nestjs/common";
 import { UploadController } from "./upload/upload.controller";
 import { UploadService } from "./upload/upload.service";
-import { CsvParserService } from "./csv-parser/csv-parser.service";
 import { ConfigModule } from "@nestjs/config";
 import { ApiKeyGuard } from "./common/guards/api-key.guard";
 
@@ -13,6 +12,6 @@ import { ApiKeyGuard } from "./common/guards/api-key.guard";
     }),
   ],
   controllers: [UploadController],
-  providers: [UploadService, CsvParserService, ApiKeyGuard],
+  providers: [UploadService, ApiKeyGuard],
 })
 export class AppModule {}

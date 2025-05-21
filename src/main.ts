@@ -10,6 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use("/uploads", express.static(join(__dirname, "..", "uploads")));
+  app.use(
+    "/reports",
+    express.static(join(__dirname, "..", "public", "reports")),
+  );
   app.useGlobalGuards(app.get(ApiKeyGuard));
 
   const config = new DocumentBuilder()

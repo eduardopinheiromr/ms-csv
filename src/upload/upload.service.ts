@@ -2,12 +2,17 @@ import { Injectable } from "@nestjs/common";
 import { processBatch } from "./strategies/batch.processor";
 import { processStream } from "./strategies/stream.processor";
 import { processParallel } from "./strategies/parallel.processor";
-import { performance } from "perf_hooks";
+import { writeFileSync, mkdirSync, existsSync } from "fs";
+import { join } from "path";
+import { v4 as uuidv4 } from "uuid";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class UploadService {
+  constructor(private configService: ConfigService) {}
+
   async processFile(filePath: string, mode: "batch" | "stream" | "parallel") {
-    const start = performance.now();
+    const start = Date.now();
 
     let result;
     switch (mode) {
@@ -23,15 +28,39 @@ export class UploadService {
         break;
     }
 
-    const end = performance.now();
-    const durationMs = end - start;
+    const durationMs = Date.now() - start;
+
+    let reportUrl: string | undefined;
+
+    if (result.errors?.length) {
+      const reportId = uuidv4();
+      const reportsDir = join(__dirname, "..", "..", "public", "reports");
+
+      if (!existsSync(reportsDir)) {
+        mkdirSync(reportsDir, { recursive: true });
+      }
+
+      const reportPath = join(reportsDir, `${reportId}.json`);
+      writeFileSync(
+        reportPath,
+        JSON.stringify(result.errors, null, 2),
+        "utf-8",
+      );
+
+      const baseUrl = this.configService.get("BASE_URL");
+      reportUrl = `${baseUrl}/reports/${reportId}.json`;
+    }
 
     return {
+      mode,
       duration: {
-        milliseconds: Math.round(durationMs),
+        milliseconds: durationMs,
         seconds: (durationMs / 1000).toFixed(2),
       },
-      ...result,
+      total: result.total,
+      valid: result.valid,
+      invalid: result.invalid,
+      reportUrl,
     };
   }
 }
