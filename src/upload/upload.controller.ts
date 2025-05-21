@@ -4,6 +4,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  BadRequestException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
@@ -46,6 +47,10 @@ export class UploadController {
     },
   })
   @ApiResponse({ status: 201, description: "Processamento concluído" })
+  @ApiResponse({
+    status: 400,
+    description: "Formato de arquivo inválido. Apenas .csv é permitido.",
+  })
   @ApiResponse({ status: 401, description: "API key inválida ou ausente" })
   @UseInterceptors(
     FileInterceptor("file", {
@@ -56,6 +61,15 @@ export class UploadController {
           cb(null, `${Date.now()}${ext}`);
         },
       }),
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.toLowerCase().endsWith(".csv")) {
+          return cb(
+            new BadRequestException("Apenas arquivos .csv são permitidos"),
+            false,
+          );
+        }
+        cb(null, true);
+      },
     }),
   )
   async uploadFile(
