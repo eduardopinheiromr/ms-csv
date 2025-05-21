@@ -64,7 +64,7 @@ POST /upload?mode=batch|stream|parallel
 
 ### Headers
 
-```pnpm
+```
 x-api-key: sua-chave-aqui
 Content-Type: multipart/form-data
 ```
@@ -103,7 +103,7 @@ E clique em “Authorize” para inserir sua API Key.
       "row": { ... },
       "errors": { ... }
     }
-  ],
+  ]
 }
 ```
 
@@ -113,20 +113,24 @@ E clique em “Authorize” para inserir sua API Key.
 
 ```
 src/
+├── common/
+│   └── guards/
+│       └── api-key.guard.ts
+├── csv-parser/
+│   └── csv-parser.service.ts
 ├── upload/
-│   ├── upload.controller.ts
-│   ├── upload.service.ts
+│   ├── __tests__/
 │   ├── strategies/
 │   │   ├── batch.processor.ts
 │   │   ├── stream.processor.ts
 │   │   └── parallel.processor.ts
-│   └── workers/
-│       └── csv.worker.ts
-├── validators/
-│   ├── schema.ts
-│   └── validatePrescription.ts
-├── common/
-│   └── guards/api-key.guard.ts
+│   ├── workers/
+│   │   └── csv.worker.ts
+│   ├── upload.controller.ts
+│   ├── upload.service.ts
+│   └── validation.ts
+├── app.module.ts
+├── main.ts
 ```
 
 ---
